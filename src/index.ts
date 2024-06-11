@@ -1,10 +1,16 @@
 import { config } from "dotenv";
 import express from "express";
+import { connectToDatabase } from "./config";
+import * as processor from "./service/processor.service";
 
 config();
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
+connectToDatabase();
+
+// Start task processor
+processor.start();
 
 app.get("/", (req, res) => {
   res.json({ status: "OK", message: "Server is up!" });
