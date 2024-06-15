@@ -8,7 +8,17 @@ export async function save(
   data: Object,
   taskType: OUTBOX_JOB_TYPE
 ): Promise<Outbox> {
-  return repository.save(data, taskType);
+  return repository.save({
+    data,
+    taskType,
+    status: OUTBOX_TASK_STATUS.PENDING,
+  });
+}
+
+export async function saveAll(
+  request: repository.TaskRequest[]
+): Promise<Outbox[]> {
+  return repository.saveAll(request);
 }
 
 async function findPendingWithLimit(limit = 50): Promise<Outbox[]> {
@@ -34,6 +44,20 @@ export async function updateStatus(
 }
 
 export async function processTask() {
+  let tasks: Outbox[] = await findPendingWithLimit();
+  for (let task of tasks) {
+    let res = await notificationService.send(task);
+    if (res) {
+      console.log(`${task.taskType} sent sucessfully`);
+      await updateStatus(OUTBOX_TASK_STATUS.COMPLETED, task.__id);
+    } else {
+      console.log(`Failed to send ${task.taskType} for task id: ${task.__id}`);
+      await updateStatus(OUTBOX_TASK_STATUS.FAILED, task.__id);
+    }
+  }
+}
+
+export async function saveTasks() {
   let tasks: Outbox[] = await findPendingWithLimit();
   for (let task of tasks) {
     let res = await notificationService.send(task);

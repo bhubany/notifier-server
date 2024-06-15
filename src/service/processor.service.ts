@@ -4,6 +4,8 @@ config();
 
 const SUPRESS_NOTIFICATION = process.env.SUPRESS_NOTIFICATION;
 const INTERVAL_MS = Number(process.env.TASK_INTERVAL_MS);
+let processing = false;
+let saving = false;
 
 export function start() {
   console.log("Background task processor started");
@@ -14,6 +16,7 @@ export function start() {
         `SUPRESS_NOTIFICATION is set to : ${SUPRESS_NOTIFICATION} . So supressing all the notification process`
       );
     } else {
+      // outboxService.s
       outboxService.processTask();
     }
   }, INTERVAL_MS);
